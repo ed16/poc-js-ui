@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8' />
+    <script src='https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js'></script>
+    <script src='https://unpkg.com/calendar-js@1.0.0/dist/calendar.min.js'></script>
+    <style>
+      #calendar {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .calendar-day {
+        border: 1px solid #ddd;
+        padding: 5px;
+        cursor: pointer;
+      }
+      .calendar-day:hover {
+        background-color: #f0f0f0;
+      }
+    </style>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new CalendarJS.Calendar(calendarEl, {
+          headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridDay'
+          },
+          initialView: 'month',
+          events: [],
+          dateClick: function(info) {
+            const employee = prompt("Enter Employee Name:");
+            const doctor = prompt("Enter Doctor Name:");
+            if (employee && doctor) {
+              axios.post('/appointments', {
+                employee: employee,
+                doctor: doctor,
+                date: info.dateStr
+              }).then(response => {
+                calendar.addEvent({
+                  title: `${response.data.employee} - ${response.data.doctor}`,
+                  start: response.data.date
+                });
+              }).catch(error => {
+                console.error('Error creating appointment:', error);
+              });
+            }
+          }
+        });
+
+        async function fetchEvents() {
+          try {
+            const response = await axios.get('/appointments');
+            response.data.forEach(appointment => {
+              calendar.addEvent({
+                title: `${appointment.employee} - ${appointment.doctor}`,
+                start: appointment.date
+              });
+            });
+          } catch (error) {
+            console.error('Error fetching appointments:', error);
+          }
+        }
+
+        fetchEvents();
+      });
+    </script>
+</head>
+<body>
+    <div id='calendar'></div>
+</body>
+</html>
