@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid.js with Golang</title>
+    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .grid-container {
+            margin: 20px;
+        }
+        #myGrid {
+            width: 100%;
+        }
+        .gridjs-input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>Grid.js with Golang Backend</h1>
+    <div class="grid-container">
+        <div id="myGrid"></div>
+    </div>
+
+    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Fetch data from the backend
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
+                    const grid = new gridjs.Grid({
+                        columns: [
+                            { name: '', formatter: (_, row) => gridjs.html(`<input type="checkbox" />`) },
+                            { name: 'Filename', data: row => row.filename },
+                            { name: 'Document Type', data: row => row.document_type },
+                            { name: 'Employee', data: row => row.employee },
+                            { name: 'Examination Type', data: row => row.examination_type },
+                            { name: 'Examination Date', data: row => row.examination_date },
+                            { name: 'Result of the Examination', data: row => row.result_of_examination },
+                            { name: 'Company', data: row => row.company },
+                            { name: 'Uploaded by', data: row => row.uploaded_by }
+                        ],
+                        data: data,
+                        pagination: {
+                            enabled: true,
+                            limit: 10
+                        },
+                        sort: true,
+                        fixedHeader: true
+                    }).render(document.getElementById('myGrid'));
+
+                    // Add filter inputs
+                    const filterRow = document.createElement('div');
+                    filterRow.classList.add('gridjs-header-row');
+                    filterRow.innerHTML = `
+                        <input type="text" placeholder="Search Filename" class="gridjs-input" data-col="filename"/>
+                        <input type="text" placeholder="Search Document Type" class="gridjs-input" data-col="document_type"/>
+                        <input type="text" placeholder="Search Employee" class="gridjs-input" data-col="employee"/>
+                        <input type="text" placeholder="Search Examination Type" class="gridjs-input" data-col="examination_type"/>
+                        <input type="text" placeholder="Search Examination Date" class="gridjs-input date-filter" data-col="examination_date"/>
+                        <input type="text" placeholder="Search Result" class="gridjs-input" data-col="result_of_examination"/>
+                        <input type="text" placeholder="Search Company" class="gridjs-input" data-col="company"/>
+                        <input type="text" placeholder="Search Uploaded by" class="gridjs-input" data-col="uploaded_by"/>
+                    `;
+                    document.querySelector('.grid-container').insertBefore(filterRow, document.getElementById('myGrid'));
+
+                    // Initialize date picker for the date filter
+                    $(".date-filter").datepicker({
+                        dateFormat: "yy-mm-dd"
+                    });
+
+                    // Filter functionality
+                    const inputs = document.querySelectorAll('.gridjs-input');
+                    inputs.forEach(input => {
+                        input.addEventListener('input', function() {
+                            const col = this.getAttribute('data-col');
+                            const val = this.value.toLowerCase();
+                            grid.updateConfig({
+                                data: data.filter(row => row[col].toString().toLowerCase().includes(val))
+                            }).forceRender();
+                        });
+                    });
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+    </script>
+</body>
+</html>

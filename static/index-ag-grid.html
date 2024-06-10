@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AG Grid with Golang</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css">
+</head>
+<body>
+    <h1>AG Grid with Golang Backend</h1>
+    <div id="myGrid" class="ag-theme-alpine" style="height: 400px; width: 100%;"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.noStyle.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const columnDefs = [
+                { headerCheckboxSelection: true, checkboxSelection: true, width: 50 },
+                { headerName: "Filename", field: "filename", filter: true, floatingFilter: true },
+                { headerName: "Document Type", field: "document_type", filter: true, floatingFilter: true },
+                { headerName: "Employee", field: "employee", filter: true, floatingFilter: true },
+                { headerName: "Examination Type", field: "examination_type", filter: true, floatingFilter: true },
+                { headerName: "Examination Date", field: "examination_date", filter: true, floatingFilter: true },
+                { headerName: "Result of the Examination", field: "result_of_examination", filter: true, floatingFilter: true },
+                { headerName: "Company", field: "company", filter: true, floatingFilter: true },
+                { headerName: "Uploaded by", field: "uploaded_by", filter: true, floatingFilter: true }
+            ];
+
+            const gridOptions = {
+                columnDefs: columnDefs,
+                rowData: null,
+                defaultColDef: {
+                    sortable: true,
+                    resizable: true,
+                    filter: true,
+                    floatingFilter: true
+                },
+                rowSelection: 'multiple'
+            };
+
+            const eGridDiv = document.querySelector('#myGrid');
+            new agGrid.Grid(eGridDiv, gridOptions);
+
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => gridOptions.api.setRowData(data));
+        });
+    </script>
+</body>
+</html>

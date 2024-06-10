@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataTables with Golang and Individual Column Filters</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.3/css/select.dataTables.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .grid-container {
+            margin: 20px;
+        }
+        thead input, thead select {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>DataTables with Golang Backend</h1>
+    <div class="grid-container">
+        <table id="myGrid" class="display" style="width:100%">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Filename</th>
+                    <th>Document Type</th>
+                    <th>Employee</th>
+                    <th>Examination Type</th>
+                    <th>Examination Date</th>
+                    <th>Result of the Examination</th>
+                    <th>Company</th>
+                    <th>Uploaded by</th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th><input type="text" placeholder="Search Filename" onclick="event.stopPropagation();" /></th>
+                    <th><input type="text" placeholder="Search Document Type" onclick="event.stopPropagation();" /></th>
+                    <th><input type="text" placeholder="Search Employee" onclick="event.stopPropagation();" /></th>
+                    <th><input type="text" placeholder="Search Examination Type" onclick="event.stopPropagation();" /></th>
+                    <th><input type="text" id="dateFilter" placeholder="Search Examination Date" onclick="event.stopPropagation();" /></th>
+                    <th><input type="text" placeholder="Search Result" onclick="event.stopPropagation();" /></th>
+                    <th><input type="text" placeholder="Search Company" onclick="event.stopPropagation();" /></th>
+                    <th><input type="text" placeholder="Search Uploaded by" onclick="event.stopPropagation();" /></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.3.3/js/dataTables.select.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Initialize the datepicker
+            $("#dateFilter").datepicker({
+                dateFormat: "yy-mm-dd"
+            });
+
+            // DataTable initialization
+            const table = $('#myGrid').DataTable({
+                ajax: {
+                    url: '/data',
+                    dataSrc: ''
+                },
+                columns: [
+                    {
+                        data: null,
+                        defaultContent: '',
+                        className: 'select-checkbox',
+                        orderable: false
+                    },
+                    { data: 'filename' },
+                    { data: 'document_type' },
+                    { data: 'employee' },
+                    { data: 'examination_type' },
+                    { data: 'examination_date' },
+                    { data: 'result_of_examination' },
+                    { data: 'company' },
+                    { data: 'uploaded_by' }
+                ],
+                select: {
+                    style: 'multi',
+                    selector: 'td:first-child'
+                },
+                order: [[1, 'asc']],
+                initComplete: function () {
+                    // Apply the search for each column
+                    this.api().columns().every(function (index) {
+                        $('thead tr:eq(1) th:eq(' + index + ') input, thead tr:eq(1) th:eq(' + index + ') select').on('keyup change clear', function () {
+                            if (index === 5) {  // Date filter
+                                this.api().column(index).search(this.value).draw();
+                            } else if (this.value !== this.api().column(index).search()) {
+                                this.api().column(index).search(this.value).draw();
+                            }
+                        }.bind(this));
+                    }.bind(this));
+                }
+            });
+        });
+    </script>
+</body>
+</html>

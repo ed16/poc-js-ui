@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabulator with Golang</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.9.3/css/tabulator.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .grid-container {
+            margin: 20px;
+        }
+        #myGrid {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tabulator with Golang Backend</h1>
+    <div class="grid-container">
+        <div id="myGrid"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/4.9.3/js/tabulator.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Fetch data from the backend
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
+                    var table = new Tabulator("#myGrid", {
+                        data: data,
+                        layout: "fitColumns",
+                        columns: [
+                            { title: "", field: "select", formatter: "rowSelection", titleFormatter: "rowSelection", hozAlign: "center", headerSort: false, cellClick: function (e, cell) { cell.getRow().toggleSelect(); } },
+                            { title: "Filename", field: "filename", editor: "input", headerFilter: "input" },
+                            { title: "Document Type", field: "document_type", editor: "input", headerFilter: "input" },
+                            { title: "Employee", field: "employee", editor: "input", headerFilter: "input" },
+                            { title: "Examination Type", field: "examination_type", editor: "input", headerFilter: "input" },
+                            { title: "Examination Date", field: "examination_date", editor: "input", sorter: "date", sorterParams: { format: "YYYY-MM-DD" }, headerFilter: dateFilterEditor },
+                            { title: "Result of the Examination", field: "result_of_examination", editor: "input", headerFilter: "input" },
+                            { title: "Company", field: "company", editor: "input", headerFilter: "input" },
+                            { title: "Uploaded by", field: "uploaded_by", editor: "input", headerFilter: "input" },
+                        ],
+                        selectable: true,
+                        pagination: "local",
+                        paginationSize: 10,
+                        paginationSizeSelector: [10, 20, 30, 40],
+                        movableColumns: true,
+                        resizableRows: true
+                    });
+
+                    function dateFilterEditor(cell, onRendered, success, cancel) {
+                        var input = document.createElement("input");
+
+                        input.setAttribute("type", "text");
+                        input.style.padding = "4px";
+                        input.style.width = "100%";
+
+                        input.addEventListener("change", function () {
+                            success(input.value);
+                        });
+
+                        input.addEventListener("blur", function () {
+                            success(input.value);
+                        });
+
+                        onRendered(function () {
+                            $(input).datepicker({
+                                dateFormat: "yy-mm-dd",
+                            }).focus();
+                        });
+
+                        return input;
+                    }
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+    </script>
+</body>
+</html>
